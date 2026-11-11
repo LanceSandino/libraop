@@ -628,7 +628,8 @@ static bool handle_rtsp(raopsr_t* ctx, int sock)
 	// don't need to free "buf" because kd_lookup return a pointer, not a strdup
 
 	kd_add(resp, "Audio-Jack-Status", "connected; type=analog");
-	kd_add(resp, "CSeq", kd_lookup(headers, "CSeq"));
+	// a request without CSeq (e.g. HTTP) would make kd_add() strdup a NULL
+	if ((buf = kd_lookup(headers, "CSeq")) != NULL) kd_add(resp, "CSeq", buf);
 
 	if (!response) buf = http_send(sock, "RTSP/1.0 200 OK", resp);
 	else buf = http_send(sock, response, NULL);
